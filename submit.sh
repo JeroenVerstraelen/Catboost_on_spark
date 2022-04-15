@@ -2,11 +2,9 @@
 
 set -exo pipefail
 
-source ./env.sh
+image="vito-docker-private.artifactory.vgt.vito.be/python38-hadoop:latest"
 
-image=${HADOOP_IMAGE}
-
-pysparkPython="venv/bin/python"
+pysparkPython="/bin/python3.8"
 #export HDP_VERSION=3.1.4.0-315
 #export SPARK_MAJOR_VERSION=2
 #export PYTHONPATH="venv/lib64/python3.8/site-packages:venv/lib/python3.8/site-packages"
@@ -25,11 +23,9 @@ ${SPARK_HOME}/bin/spark-submit \
    --master yarn --deploy-mode cluster \
    --queue ${queue} \
    --name ${spark_job_name} \
-   --principal openeo@VGT.VITO.BE --keytab openeo.keytab \
    --driver-memory 10G \
    --executor-memory 3G \
    --executor-cores 2 \
-   --spark.task.cpus 2 \
    --driver-cores ${driverCores} \
    --driver-java-options "${sparkDriverJavaOptions}" \
    --conf "spark.executor.extraJavaOptions=${sparkExecutorJavaOptions}" \
