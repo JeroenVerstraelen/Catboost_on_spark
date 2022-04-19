@@ -4,6 +4,7 @@ from pyspark.sql.types import *
 
 spark = (SparkSession.builder
   .master("local[*]")
+  .config("spark.tasks.cpus", "2")
   .config("spark.jars.packages", "ai.catboost:catboost-spark_3.1_2.12:1.0.4")
   .appName("ClassifierTest")
   .getOrCreate()

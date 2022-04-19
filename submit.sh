@@ -2,7 +2,7 @@
 
 set -exo pipefail
 
-image="vito-docker-private.artifactory.vgt.vito.be/python38-hadoop:latest"
+image="vito-docker-private.artifactory.vgt.vito.be/openeo-catboost:latest"
 
 pysparkPython="/bin/python3.8"
 #export HDP_VERSION=3.1.4.0-315
@@ -49,7 +49,7 @@ ${SPARK_HOME}/bin/spark-submit \
    --conf spark.executorEnv.YARN_CONTAINER_RUNTIME_DOCKER_MOUNTS=/var/lib/sss/pubconf/krb5.include.d:/var/lib/sss/pubconf/krb5.include.d:ro,/var/lib/sss/pipes:/var/lib/sss/pipes:rw,/usr/hdp/current/:/usr/hdp/current/:ro,/etc/hadoop/conf/:/etc/hadoop/conf/:ro,/etc/krb5.conf:/etc/krb5.conf:ro,/data/users:/data/users:rw \
    --conf spark.ui.view.acls.groups=vito \
    --conf spark.modify.acls.groups=vito \
-   --conf spark.extraListeners="org.openeo.sparklisteners.CancelRunawayJobListener" \
+   --conf spark.jars.packages="ai.catboost:catboost-spark_3.1_2.12:1.0.4" \
    --conf spark.shuffle.service.name=spark_shuffle_320 --conf spark.shuffle.service.port=7557 \
    --conf spark.hadoop.security.authentication=kerberos --conf spark.yarn.maxAppAttempts=1 \
    catboost_on_cluster.py
