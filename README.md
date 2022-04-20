@@ -1,8 +1,8 @@
 Steps to run on cluster:
-    1. Clone repository to your uservm
-    2. Authenticate with kinit
-    3. Run ./submit23.sh
-    (Ensure your kerberos user has the rights to write to every output folder in your script.)
+
+    Clone repository to your uservm
+    Authenticate with kinit
+    Run ./submit23.sh (Ensure your kerberos user has the rights to write to every output folder in your script.)
 
 For development, you can run the service:
 
