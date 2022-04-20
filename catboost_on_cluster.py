@@ -43,14 +43,16 @@ model = classifier.fit(trainPool, [evalPool])
 predictions = model.transform(evalPool.data)
 predictions.show()
 
-# save the model
-savedModelPath = "/data/users/Public/verstraj/catboost_models/multiclass_model"
+# save the model, make sure the directory can be written to by the user that ran spark-submit.
+savedModelPath = "file:/data/users/Public/verstraj/catboost_models/model"
+print("Saving model at: ", savedModelPath)
 model.write().save(savedModelPath)
 
 # load the model (can be used in a different Spark session)
-
+print("Loading model")
 loadedModel = catboost_spark.CatBoostClassificationModel.load(savedModelPath)
 
 predictionsFromLoadedModel = loadedModel.transform(evalPool.data)
+print("Showing model")
 predictionsFromLoadedModel.show()
 
