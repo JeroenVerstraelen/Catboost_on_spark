@@ -3,9 +3,7 @@ from pyspark.ml.linalg import Vectors, VectorUDT
 from pyspark.sql.types import *
 
 spark = (SparkSession.builder
-  .master("local[*]")
   .config("spark.tasks.cpus", "2")
-  .config("spark.jars.packages", "ai.catboost:catboost-spark_3.1_2.12:1.0.4")
   .appName("ClassifierTest")
   .getOrCreate()
 )
@@ -46,12 +44,8 @@ predictions = model.transform(evalPool.data)
 predictions.show()
 
 # save the model
-savedModelPath = "/my_models/multiclass_model"
+savedModelPath = "/data/users/Public/verstraj/catboost_models/multiclass_model"
 model.write().save(savedModelPath)
-
-# save the model as a local file in CatBoost native format
-savedNativeModelPath = './my_local_models/multiclass_model.cbm'
-model.saveNativeModel(savedNativeModelPath)
 
 # load the model (can be used in a different Spark session)
 
@@ -59,11 +53,4 @@ loadedModel = catboost_spark.CatBoostClassificationModel.load(savedModelPath)
 
 predictionsFromLoadedModel = loadedModel.transform(evalPool.data)
 predictionsFromLoadedModel.show()
-
-# load the model as a local file in CatBoost native format
-
-loadedNativeModel = catboost_spark.CatBoostClassificationModel.loadNativeModel(savedNativeModelPath)
-
-predictionsFromLoadedNativeModel = loadedNativeModel.transform(evalPool.data)
-predictionsFromLoadedNativeModel.show()
 
