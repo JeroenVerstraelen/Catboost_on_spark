@@ -1,6 +1,7 @@
 from pyspark.sql import Row, SparkSession
 from pyspark.ml.linalg import Vectors, VectorUDT
 from pyspark.sql.types import *
+import pandas as pd
 
 spark = (SparkSession.builder
   .config("spark.tasks.cpus", "2")
