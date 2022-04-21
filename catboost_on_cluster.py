@@ -105,7 +105,7 @@ def train_spark_model(pd_df, fp, bands):
   test_pool = catboost_spark.Pool(test_data)
 
   classifier = catboost_spark.CatBoostClassifier(
-    iterations=100,
+    iterations=10000,
     # # learningRate=None,
     # # randomSeed=99,
     # # l2LeafReg=0,
