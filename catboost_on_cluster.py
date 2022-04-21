@@ -202,7 +202,7 @@ train_spark_model(final_df_ws_grouped_northeast, 'ws_groot_strat_22000',model_ba
 
 #### 43000 6000
 df_ws_grouped_south = df.copy()
-df_ws_grouped_south = df_ws_grouped_south[df_ws_grouped_south["groupID"] in [43000, 6000]]
+df_ws_grouped_south = df_ws_grouped_south[df_ws_grouped_south["groupID"].isin([43000, 6000])]
 df_ws_grouped_south = df_ws_grouped_south[~df_ws_grouped_south["id"].isin([0, 1000, 991, 9998])]
 df_ws_grouped_south["label"] = df_ws_grouped_south["id"].apply(winter_spring_grouped)
 
