@@ -94,8 +94,7 @@ def train_spark_model(pd_df, fp):
 
   assembler = VectorAssembler(
       inputCols=[x for x in old_trainDf.columns if x in model_band_names],
-      outputCol='features',
-      handleInvalid="keep")
+      outputCol='features')
 
   nieuw_df = assembler.transform(old_trainDf)
   # print(nieuw_df.select("features", "label").toPandas().head(5))
