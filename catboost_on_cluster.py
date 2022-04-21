@@ -21,7 +21,8 @@ srcDataSchema = [
 #### HELPER FUNCTIES, SKIP NAAR BENEDEN
 def load_df():
     df = pd.read_csv("/data/users/Public/driesseb/catboost/final_features.csv",index_col=0).drop_duplicates()
-    df = df[~df["B06_p50"].isnull()]
+    # df = df[~df["B06_p50"].isnull()]
+    df = df.drop_na()
     df["groupID"] = df["groupID"].astype(int)
     df["zoneID"] = df["zoneID"].astype(int) ## floats kunnen niet als categorical feats
     return df, [i for i in df.columns if i not in ["id"]]
