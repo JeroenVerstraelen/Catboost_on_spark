@@ -132,7 +132,7 @@ def train_spark_model(pd_df, fp):
   model.write().save(savedModelPath)
 
   # save the model as a local file in CatBoost native format
-  savedNativeModelPath = 'file:/data/users/Public/driesseb/catboost/'+fp+'.cbm'
+  savedNativeModelPath = '/data/users/Public/driesseb/catboost/'+fp+'.cbm'
   model.saveNativeModel(savedNativeModelPath)
 
 
