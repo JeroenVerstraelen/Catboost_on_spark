@@ -1,5 +1,6 @@
 from pyspark.sql import Row, SparkSession
 from pyspark.ml.linalg import Vectors, VectorUDT
+from pyspark.ml.feature import VectorAssembler
 from pyspark.sql.types import *
 import pandas as pd
 
