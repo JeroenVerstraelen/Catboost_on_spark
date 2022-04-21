@@ -89,11 +89,11 @@ def cereals_grouped(x):
         return 0
 
 
-def train_spark_model(pd_df, fp):
-  old_trainDf = spark.createDataFrame(pd_df, schema=model_band_names+["label"])
+def train_spark_model(pd_df, fp, bands):
+  old_trainDf = spark.createDataFrame(pd_df, schema=bands+["label"])
 
   assembler = VectorAssembler(
-      inputCols=[x for x in old_trainDf.columns if x in model_band_names],
+      inputCols=[x for x in old_trainDf.columns if x in bands],
       outputCol='features')
 
   nieuw_df = assembler.transform(old_trainDf)
@@ -147,7 +147,7 @@ df_ws_grouped = df_ws_grouped[~df_ws_grouped["id"].isin([0, 1000, 991, 9998])]
 df_ws_grouped["label"] = df_ws_grouped["id"].apply(winter_spring_grouped)
 
 final_df_ws_grouped = df_ws_grouped[model_band_names+["label"]]
-train_spark_model(final_df_ws_grouped, 'ws_grouped_groot')
+train_spark_model(final_df_ws_grouped, 'ws_grouped_groot',model_band_names)
 
 ### EEN MET MINDER FEATURES
 most_important_features = [
@@ -165,7 +165,7 @@ most_important_features = [
 ]
 
 final_df_ws_grouped_small = df_ws_grouped[most_important_features+["label"]]
-train_spark_model(final_df_ws_grouped_small, 'ws_grouped_klein')
+train_spark_model(final_df_ws_grouped_small, 'ws_grouped_klein',most_important_features)
 
 ### EEN MET FEATURES PROPOSED IN PROPOSAL
 df_c_grouped = df.copy()
@@ -173,7 +173,7 @@ df_c_grouped = df_c_grouped[~df_c_grouped["id"].isin([0, 1000, 991, 9998, 1100, 
 df_c_grouped["label"] = df_c_grouped["id"].apply(cereals_grouped)
 
 final_df_c_grouped = df_c_grouped[model_band_names+["label"]]
-train_spark_model(final_df_c_grouped, 'c_grouped_groot')
+train_spark_model(final_df_c_grouped, 'c_grouped_groot',model_band_names)
 
 
 ### EEN MET LOSSE STRATA
@@ -189,7 +189,7 @@ df_ws_grouped_midwest = df_ws_grouped_midwest[~df_ws_grouped_midwest["id"].isin(
 df_ws_grouped_midwest["label"] = df_ws_grouped_midwest["id"].apply(winter_spring_grouped)
 
 final_df_ws_grouped_midwest = df_ws_grouped_midwest[model_band_names+["label"]]
-train_spark_model(final_df_ws_grouped_midwest, 'ws_groot_strat_46000')
+train_spark_model(final_df_ws_grouped_midwest, 'ws_groot_strat_46000',model_band_names)
 
 #### 22000
 df_ws_grouped_northeast = df.copy()
@@ -198,7 +198,7 @@ df_ws_grouped_northeast = df_ws_grouped_northeast[~df_ws_grouped_northeast["id"]
 df_ws_grouped_northeast["label"] = df_ws_grouped_northeast["id"].apply(winter_spring_grouped)
 
 final_df_ws_grouped_northeast = df_ws_grouped_northeast[model_band_names+["label"]]
-train_spark_model(final_df_ws_grouped_northeast, 'ws_groot_strat_22000')
+train_spark_model(final_df_ws_grouped_northeast, 'ws_groot_strat_22000',model_band_names)
 
 #### 43000 6000
 df_ws_grouped_south = df.copy()
@@ -207,4 +207,4 @@ df_ws_grouped_south = df_ws_grouped_south[~df_ws_grouped_south["id"].isin([0, 10
 df_ws_grouped_south["label"] = df_ws_grouped_south["id"].apply(winter_spring_grouped)
 
 final_df_ws_grouped_south = df_ws_grouped_south[model_band_names+["label"]]
-train_spark_model(final_df_ws_grouped_south, 'ws_groot_strat_43000_6000')
+train_spark_model(final_df_ws_grouped_south, 'ws_groot_strat_43000_6000',model_band_names)
