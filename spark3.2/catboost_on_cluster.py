@@ -41,7 +41,7 @@ evalPool = catboost_spark.Pool(evalDf)
 classifier = catboost_spark.CatBoostClassifier()
 
 # train a model
-model = classifier.fit(trainPool, [evalPool])
+model = classifier.fit(trainPool, evalDatasets=[evalPool])
 
 # apply the model
 predictions = model.transform(evalPool.data)
