@@ -9,7 +9,7 @@ queue="openeo"
 driverCores=1
 sparkDriverJavaOptions="-Dhdp.version=3.1.4.0-315"
 
-jars="jars/catboost-common-1.0.4.jar, jars/catboost-spark-macros_2.12-1.0.4.jar, catboost-spark_3.2_2.12-1.0.4.jar"
+jars="jars/catboost-common-1.0.4.jar, jars/catboost-spark-macros_2.12-1.0.4.jar, jars/catboost-spark_3.2_2.12-1.0.4.jar, jars/classgraph-4.8.143.jar"
 
 ${SPARK_HOME}/bin/spark-submit \
    --master yarn --deploy-mode cluster \
