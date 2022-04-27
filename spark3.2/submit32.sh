@@ -34,5 +34,7 @@ ${SPARK_HOME}/bin/spark-submit \
    --conf spark.ui.view.acls.groups=vito \
    --conf spark.modify.acls.groups=vito \
    --conf spark.hadoop.security.authentication=kerberos --conf spark.yarn.maxAppAttempts=1 \
-   --conf spark.submit.pyFiles=${jars}
+   --conf spark.jars=${jars} \
+   --conf spark.yarn.dist.jars=${jars} \
+   --conf spark.submit.pyFiles=${jars} \
    catboost_on_cluster.py
