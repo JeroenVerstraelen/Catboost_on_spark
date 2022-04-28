@@ -3,13 +3,13 @@
 set -exo pipefail
 
 export SPARK_HOME=/opt/spark3_2_0
-pysparkPython="/bin/python3.8"
+pysparkPython="/bin/python3.6"
 spark_job_name=Catboost_on_cluster
 queue="openeo"
 driverCores=1
 sparkDriverJavaOptions="-Dhdp.version=3.1.4.0-315"
 
-jars="jars/catboost-common-1.0.4.jar, jars/catboost-spark-macros_2.12-1.0.4.jar, jars/catboost-spark_3.2_2.12-1.0.4.jar, jars/classgraph-4.8.143.jar"
+jars="jars/catboost-common-1.0.4.jar,jars/catboost-spark-macros_2.12-1.0.4.jar,jars/catboost-spark_3.2_2.12-1.0.4.jar,jars/classgraph-4.8.143.jar"
 
 ${SPARK_HOME}/bin/spark-submit \
    --master yarn --deploy-mode cluster \
