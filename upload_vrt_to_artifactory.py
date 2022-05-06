@@ -9,7 +9,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-u", "--username", help="User name", type=str, required=True)
 parser.add_argument("-p", "--password", help="Password", type=str, required=True)
 parser.add_argument("-o", "--output", help="Output vrt file name.", type=str, default="eu_croptype.vrt")
-parser.add_argument("-d", "--adir", help="Directory on artifactory to convert to vrt.", type=str, default="eu_croptype")
+parser.add_argument("-a", "--adir", help="Directory on artifactory to convert to vrt.", type=str, default="eu_croptype")
 
 
 def main():
