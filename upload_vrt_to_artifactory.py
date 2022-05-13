@@ -145,7 +145,7 @@ def create_overview(output_filename, levels):
 
 def upload_file_to_artifactory(artifactory_directory, output_filename, username, password):
     logger.info("Uploading {output_file} to artifactory.".format(output_file=output_filename))
-    destination_url = artifactory_directory + "/" + output_filename
+    destination_url = artifactory_directory + output_filename
     p_input = "curl -u " + username + ":" + password + " -T " + output_filename + " " + destination_url
     subprocess.check_call(p_input.split())
     return destination_url
