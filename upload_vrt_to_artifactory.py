@@ -1,6 +1,8 @@
 import argparse
 import json
+import logging
 import os
+import sys
 import time
 from itertools import repeat
 from multiprocessing import Pool
@@ -14,6 +16,18 @@ CHECKPOINT0_FILENAME = "checkpoint0.json"
 CHECKPOINT1_FILENAME = "checkpoint1.txt"
 CHECKPOINT2_FILENAME = "checkpoint2.txt"
 TARGET_CRS = "EPSG3035"  # European EPSG code.
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s | %(levelname)s | %(message)s')
+stdout_handler = logging.StreamHandler(sys.stdout)
+stdout_handler.setLevel(logging.DEBUG)
+stdout_handler.setFormatter(formatter)
+file_handler = logging.FileHandler('upload_vrt_to_artifactory.log')
+file_handler.setLevel(logging.DEBUG)
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+logger.addHandler(stdout_handler)
 
 
 def str2bool(v):
@@ -57,11 +71,11 @@ def get_tile_urls(artifactory_directory):
 
 
 def map_to_zones(tile_urls):
-    print("Extracting epsg codes using gdalsrsinfo (this can take several minutes).")
+    logger.info("Extracting epsg codes using gdalsrsinfo (this can take several minutes).")
     start = time.time()
     with Pool(processes=None) as pool:
         epsgs = pool.map(get_epsg, tile_urls)
-    print("Extraction took " + str(time.time() - start) + " seconds.")
+    logger.info("Extraction took " + str(time.time() - start) + " seconds.")
     zone_files = {}
     for epsg, url in epsgs:
         epsg = epsg.replace(":", "")
@@ -76,17 +90,17 @@ def _build_zone_vrt(items, overwrite):
     zone_output_filename = zone_url + ".vrt"
     if os.path.exists(zone_output_filename):
         if not overwrite:
-            print("Skipping vrt creation for zone {zone}, already exists.".format(zone=zone_url))
+            logger.info("Skipping vrt creation for zone {zone}, already exists.".format(zone=zone_url))
             return zone_output_filename
         os.remove(zone_output_filename)
-    print("Creating VRT for zone {zone}.".format(zone=zone_url))
+    logger.info("Creating VRT for zone {zone}.".format(zone=zone_url))
     zone_input_files = " ".join(zone_files)
     os.system('gdalbuildvrt ' + zone_output_filename + ' ' + zone_input_files)
     return zone_output_filename
 
 
 def build_zone_vrts(zone_to_tile_urls, overwrite):
-    print("Found zones: {zones}".format(zones=zone_to_tile_urls.keys()))
+    logger.info("Found zones: {zones}".format(zones=zone_to_tile_urls.keys()))
     with Pool(processes=None) as pool:
         zone_vrts = pool.starmap(_build_zone_vrt, zip(zone_to_tile_urls.items(), repeat(overwrite)))
     return zone_vrts
@@ -97,7 +111,7 @@ def _reproject_zone_vrt(zone_url, target_crs, overwrite):
     output_file = input_file.split("/")[-1].replace(".vrt", "_" + target_crs + ".vrt")
     if os.path.exists(output_file):
         if not overwrite:
-            print("Skipping reprojection of {input_file}, already exists on local file system.".format(input_file=input_file))
+            logger.info("Skipping reprojection of {input_file}, already exists on local file system.".format(input_file=input_file))
             return output_file
         os.remove(output_file)
     os.system('gdalwarp -of VRT {input} {output} -t_srs "{epsg}"'
@@ -106,26 +120,26 @@ def _reproject_zone_vrt(zone_url, target_crs, overwrite):
 
 
 def reproject_zone_vrts(zone_vrt_urls, target_crs, overwrite):
-    print("Reprojecting all zone VRTs to srs: {epsg}".format(epsg=target_crs))
+    logger.info("Reprojecting all zone VRTs to srs: {epsg}".format(epsg=target_crs))
     with Pool(processes=None) as pool:
         zone_vrt_reprojected_filenames = pool.starmap(_reproject_zone_vrt, zip(zone_vrt_urls, repeat(target_crs), repeat(overwrite)))
     return zone_vrt_reprojected_filenames
 
 
 def combine_zone_vrts(output_filename, zone_vrts_reprojected_urls):
-    print("Combining all zone VRTs into one: {output}".format(output=output_filename))
+    logger.info("Combining all zone VRTs into one: {output}".format(output=output_filename))
     os.system('gdalbuildvrt ' + output_filename + ' ' + " ".join(zone_vrts_reprojected_urls))
 
 
 def create_overview(output_filename, levels):
-    print("Creating overviews.")
+    logger.info("Creating overviews.")
     overview_levels_str = ' '.join([str(i) for i in levels])
     os.system('gdaladdo ' + '--config SPARSE_OK_OVERVIEW ON ' + '--config COMPRESS_OVERVIEW DEFLATE '
               + '--config GDAL_NUM_THREADS ALL_CPUS ' + output_filename + ' ' + overview_levels_str)
 
 
 def upload_file_to_artifactory(artifactory_directory, output_filename, username, password):
-    print("Uploading {output_file} to artifactory.".format(output_file=output_filename))
+    logger.info("Uploading {output_file} to artifactory.".format(output_file=output_filename))
     destination_url = artifactory_directory + "/" + output_filename
     os.system("curl -u " + username + ":" + password + " -T " + output_filename + " " + destination_url)
     return destination_url
@@ -133,7 +147,7 @@ def upload_file_to_artifactory(artifactory_directory, output_filename, username,
 
 def clean_workdir(clean: bool, zone_to_tile_urls_filename, zone_vrts_filename, zone_vrt_reprojected_filenames_filename):
     if clean:
-        print("Cleaning up intermediate files.")
+        logger.info("Cleaning up intermediate files.")
         with open(zone_vrts_filename, 'r') as f:
             zone_vrts = f.read().splitlines()
         with open(zone_vrt_reprojected_filenames_filename, 'r') as f:
@@ -146,7 +160,7 @@ def clean_workdir(clean: bool, zone_to_tile_urls_filename, zone_vrts_filename, z
         os.remove(zone_vrts_filename)
         os.remove(zone_vrt_reprojected_filenames_filename)
     else:
-        print("Not cleaning up intermediate files as --clean was not set to True.")
+        logger.info("Not cleaning up intermediate files as --clean was not set to True.")
 
 
 def main():
@@ -168,7 +182,7 @@ def main():
                 zone_vrts = f.read().splitlines()
                 for file_name in zone_vrts:
                     if not os.path.exists(file_name):
-                        print("{zone_vrts_filename} is not valid. Checkpoint 1 failed.")
+                        logger.info("{zone_vrts_filename} is not valid. Checkpoint 1 failed.")
                         return False
             return True
         return False
@@ -179,13 +193,13 @@ def main():
                 zone_vrt_reprojected_filenames = f.read().splitlines()
                 for file_name in zone_vrt_reprojected_filenames:
                     if not os.path.exists(file_name):
-                        print("{zone_vrt_reprojected_filenames_file} is not valid. Checkpoint 3 failed.")
+                        logger.info("{zone_vrt_reprojected_filenames_file} is not valid. Checkpoint 3 failed.")
                         return False
             return True
         return False
 
     def checkpoint0_map_to_zones():
-        print("Checkpoint 0: Map to zones.")
+        logger.info("Checkpoint 0: Map to zones.")
         # 1. Retrieve geotiff links from artifactory.
         tile_urls = get_tile_urls(artifactory_directory)
         # 2. Map artifactory links to their zone.
@@ -201,12 +215,12 @@ def main():
             return False
         with open(CHECKPOINT0_FILENAME, "r") as f:
             zone_to_tile_urls = json.load(f)
-        print("Checkpoint 1: Build VRTs.")
+        logger.info("Checkpoint 1: Build VRTs.")
         # 3. Build one VRT per zone.
-        print("Building one VRT per zone.")
+        logger.info("Building one VRT per zone.")
         start = time.time()
         zone_vrts = build_zone_vrts(zone_to_tile_urls, overwritezone)
-        print("Building VRTs took " + str(time.time() - start) + " seconds.")
+        logger.info("Building VRTs took " + str(time.time() - start) + " seconds.")
         # End checkpoint.
         with open(CHECKPOINT1_FILENAME, 'w') as f:
             for zone_vrt in zone_vrts:
@@ -219,7 +233,7 @@ def main():
         # Start checkpoint.
         with open(CHECKPOINT1_FILENAME, 'r') as f:
             zone_vrts = f.read().splitlines()
-        print("Checkpoint 2: Reproject VRTs.")
+        logger.info("Checkpoint 2: Reproject VRTs.")
         # Upload zone VRTs to artifactory.
         zone_vrt_urls = [upload_file_to_artifactory(artifactory_directory, zone_file, username, password)
                          for zone_file in zone_vrts]
@@ -237,7 +251,7 @@ def main():
         # Start checkpoint.
         with open(CHECKPOINT2_FILENAME, "r") as f:
             zone_vrt_reprojected_filenames = f.read().splitlines()
-        print("Checkpoint 3: Combine VRTs.")
+        logger.info("Checkpoint 3: Combine VRTs.")
         # Upload reprojected zone VRTs to artifactory.
         zone_vrts_reprojected_urls = [upload_file_to_artifactory(artifactory_directory, zone_file, username, password)
                                       for zone_file in zone_vrt_reprojected_filenames]
@@ -257,7 +271,7 @@ def main():
     for checkpoint in reversed(checkpoints):
         if checkpoint():
             break
-    print("Script took " + str(time.time() - script_start_time) + " seconds.")
+    logger.info("Script took " + str(time.time() - script_start_time) + " seconds.")
 
 
 if __name__ == "__main__":
