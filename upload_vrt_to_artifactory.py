@@ -2,6 +2,7 @@ import argparse
 import json
 import logging
 import os
+import subprocess
 import sys
 import time
 from itertools import repeat
@@ -95,7 +96,8 @@ def _build_zone_vrt(items, overwrite):
         os.remove(zone_output_filename)
     logger.info("Creating VRT for zone {zone}.".format(zone=zone_url))
     zone_input_files = " ".join(zone_files)
-    os.system('gdalbuildvrt ' + zone_output_filename + ' ' + zone_input_files)
+    p_input = 'gdalbuildvrt ' + zone_output_filename + ' ' + zone_input_files
+    subprocess.check_call(p_input.split())
     return zone_output_filename
 
 
@@ -114,8 +116,9 @@ def _reproject_zone_vrt(zone_url, target_crs, overwrite):
             logger.info("Skipping reprojection of {input_file}, already exists on local file system.".format(input_file=input_file))
             return output_file
         os.remove(output_file)
-    os.system('gdalwarp -of VRT {input} {output} -t_srs "{epsg}"'
-              .format(input=input_file, output=output_file, epsg=target_crs.replace("EPSG", "EPSG:")))
+    p_input = 'gdalwarp -of VRT {input} {output} -t_srs "{epsg}"'\
+        .format(input=input_file, output=output_file, epsg=target_crs.replace("EPSG", "EPSG:"))
+    subprocess.check_call(p_input.split())
     return output_file
 
 
@@ -128,20 +131,23 @@ def reproject_zone_vrts(zone_vrt_urls, target_crs, overwrite):
 
 def combine_zone_vrts(output_filename, zone_vrts_reprojected_urls):
     logger.info("Combining all zone VRTs into one: {output}".format(output=output_filename))
-    os.system('gdalbuildvrt ' + output_filename + ' ' + " ".join(zone_vrts_reprojected_urls))
+    p_input = 'gdalbuildvrt ' + output_filename + ' ' + " ".join(zone_vrts_reprojected_urls)
+    subprocess.check_call(p_input.split())
 
 
 def create_overview(output_filename, levels):
     logger.info("Creating overviews.")
     overview_levels_str = ' '.join([str(i) for i in levels])
-    os.system('gdaladdo ' + '--config SPARSE_OK_OVERVIEW ON ' + '--config COMPRESS_OVERVIEW DEFLATE '
-              + '--config GDAL_NUM_THREADS ALL_CPUS ' + output_filename + ' ' + overview_levels_str)
+    p_input = 'gdaladdo ' + '--config SPARSE_OK_OVERVIEW ON ' + '--config COMPRESS_OVERVIEW DEFLATE ' \
+              + '--config GDAL_NUM_THREADS ALL_CPUS ' + output_filename + ' ' + overview_levels_str
+    subprocess.check_call(p_input.split())
 
 
 def upload_file_to_artifactory(artifactory_directory, output_filename, username, password):
     logger.info("Uploading {output_file} to artifactory.".format(output_file=output_filename))
     destination_url = artifactory_directory + "/" + output_filename
-    os.system("curl -u " + username + ":" + password + " -T " + output_filename + " " + destination_url)
+    p_input = "curl -u " + username + ":" + password + " -T " + output_filename + " " + destination_url
+    subprocess.check_call(p_input.split())
     return destination_url
 
 
@@ -182,7 +188,7 @@ def main():
                 zone_vrts = f.read().splitlines()
                 for file_name in zone_vrts:
                     if not os.path.exists(file_name):
-                        logger.info("{zone_vrts_filename} is not valid. Checkpoint 1 failed.")
+                        logger.info("{file} is not valid.".format(file=CHECKPOINT1_FILENAME))
                         return False
             return True
         return False
@@ -193,7 +199,7 @@ def main():
                 zone_vrt_reprojected_filenames = f.read().splitlines()
                 for file_name in zone_vrt_reprojected_filenames:
                     if not os.path.exists(file_name):
-                        logger.info("{zone_vrt_reprojected_filenames_file} is not valid. Checkpoint 3 failed.")
+                        logger.info("{file} is not valid.".format(file=CHECKPOINT2_FILENAME))
                         return False
             return True
         return False
@@ -212,6 +218,7 @@ def main():
     def checkpoint1_build():
         # Start checkpoint.
         if not os.path.exists(CHECKPOINT0_FILENAME):
+            logger.info("{file} is not valid.".format(file=CHECKPOINT0_FILENAME))
             return False
         with open(CHECKPOINT0_FILENAME, "r") as f:
             zone_to_tile_urls = json.load(f)
