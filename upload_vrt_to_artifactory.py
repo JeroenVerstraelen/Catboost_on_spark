@@ -54,6 +54,8 @@ parser.add_argument("-or", "--overwritereproject", help="Overwrite any existing 
                                                         "directory.", type=str2bool, nargs='?', default=True)
 parser.add_argument("-c", "--clean", help="Remove any intermediate files created by this script.",
                     type=str2bool, nargs='?', default=True)
+parser.add_argument("-l", "--overviewlevels", help="Levels too use for overviews.",
+                    type=int, nargs="+", default=[32, 64, 128])
 
 
 def get_epsg(url):
@@ -176,6 +178,7 @@ def main():
     password = args.password
     overwritezone = args.overwritezone
     overwriterepojected = args.overwritereproject
+    overviewlevels = set(args.overviewlevels)
     clean = args.clean
     output_filename = args.output
     if not output_filename.endswith(".vrt"):
@@ -265,7 +268,7 @@ def main():
 
         # 5. Combine all zone VRTs into one large VRT and create overviews.
         combine_zone_vrts(output_filename, zone_vrts_reprojected_urls)
-        create_overview(output_filename, [32, 64, 128])
+        create_overview(output_filename, overviewlevels)
 
         # Upload the final VRT with overviews to artifactory.
         upload_file_to_artifactory(artifactory_directory, output_filename, username, password)
