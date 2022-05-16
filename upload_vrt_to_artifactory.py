@@ -120,7 +120,7 @@ def _reproject_zone_vrt(zone_url, target_crs, overwrite):
         os.remove(output_file)
     p_input = 'gdalwarp -of VRT {input} {output} -t_srs "{epsg}"'\
         .format(input=input_file, output=output_file, epsg=target_crs.replace("EPSG", "EPSG:"))
-    subprocess.check_call(p_input.split())
+    os.system(p_input)
     return output_file
 
 
