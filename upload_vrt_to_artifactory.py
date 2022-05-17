@@ -111,7 +111,7 @@ def build_zone_vrts(zone_to_tile_urls, overwrite):
 
 
 def _reproject_zone_vrt(zone_url, target_crs, overwrite):
-    input_file = zone_url
+    input_file = '/vsicurl/' + zone_url
     output_file = input_file.split("/")[-1].replace(".vrt", "_" + target_crs + ".vrt")
     if os.path.exists(output_file):
         if not overwrite:
@@ -134,7 +134,7 @@ def reproject_zone_vrts(zone_vrt_urls, target_crs, overwrite):
 def combine_zone_vrts(output_filename, zone_vrts_reprojected_urls):
     logger.info("Combining all zone VRTs into one: {output}".format(output=output_filename))
     p_input = 'gdalbuildvrt ' + output_filename + ' ' + " ".join(zone_vrts_reprojected_urls)
-    subprocess.check_call(p_input.split())
+    os.system(p_input)
 
 
 def create_overview(output_filename, levels):
