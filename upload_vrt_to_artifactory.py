@@ -132,8 +132,9 @@ def reproject_zone_vrts(zone_vrt_urls, target_crs, overwrite):
 
 
 def combine_zone_vrts(output_filename, zone_vrts_reprojected_urls):
+    input_files = ['/vsicurl/' + vrt for vrt in zone_vrts_reprojected_urls]
     logger.info("Combining all zone VRTs into one: {output}".format(output=output_filename))
-    p_input = 'gdalbuildvrt ' + output_filename + ' ' + " ".join(zone_vrts_reprojected_urls)
+    p_input = 'gdalbuildvrt ' + output_filename + ' ' + " ".join(input_files)
     os.system(p_input)
 
 
